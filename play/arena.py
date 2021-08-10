@@ -1,7 +1,7 @@
 import pygame as pg
 from enum import IntEnum
 from random import randrange
-from .colors import Color
+from colors import Color
 
 
 class Direct(IntEnum):
@@ -83,17 +83,24 @@ class Snake:
 class Arena(pg.Surface):
     def __init__(self, win_size, box_size, area):
         super().__init__(win_size)
+        self._win_size = win_size
         self._box = box_size
         self._area = area
         self._bg_color = Color.GREEN
         self._food_color = Color.WHITE
         self._snake_color = Color.BLUE
         self._head_color = Color.RED
+        self._end_game = False
+        #self._food = None
         self.snake = Snake(self._area)
         self.fill(self._bg_color)
         self.add_food()
         self.draw_snake()
         self.draw_food()
+
+    @property
+    def is_end(self):
+        return self._end_game
 
     def draw_snake(self):
         for block, color in zip(self.snake, [self._head_color] + [self._snake_color] * (len(self.snake) - 1)):
@@ -105,10 +112,31 @@ class Arena(pg.Surface):
             pg.draw.rect(self, color, [x_s, y_s, x_e, y_e])
 
     def draw_food(self):
-        ...
+        x, y = self._food
+        x_s = x * self._box + 1
+        y_s = y * self._box + 1
+        x_e, y_e = x_s + self._box - 1, y_s + self._box - 1
+        pg.draw.rect(self, self._food_color, [x_s, y_s, x_e, y_e])
 
-    def update(self):
-        ...
+    def update(self, direct):
+        if direct is not None:
+            self.snake.direction = direct
+        if self.snake.step(self._food):
+            self.fill(self._bg_color) #?
+            if self.snake.check(self._food):
+                self.add_food()
+            self.draw_food()
+            self.draw_snake()
+        else:
+            self._end_game = True
 
     def add_food(self):
-        ...
+        self._food = (
+            randrange(0, self._win_size[0]),
+            randrange(0, self._win_size[1])
+        )
+        while self.snake.check(self._food):
+            self._food = (
+            randrange(0, self._win_size[0]),
+            randrange(0, self._win_size[1])
+        )
