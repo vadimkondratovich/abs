@@ -87,6 +87,7 @@ while 1:
         if i.type == pygame.MOUSEBUTTONDOWN:
             if i.button == 1:
                 
+                pygame.display.update()
                 
                 pygame.display.update()
             elif i.button == 3:
